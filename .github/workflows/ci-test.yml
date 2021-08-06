@@ -37,16 +37,16 @@ jobs:
     - name: Check Service dir
       run: ls ./publish-api
       
-    - name: Publish image
-      uses: docker/build-push-action@v1
-      with:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        path: ./publish-api
-        registry: docker.pkg.github.com
-        repository: ${{ secrets.ORG_NAME }}/service.clientportfoliohistory/myjetwallet.service.clientportfoliohistory-test
-        tags: latest
-        build_args: app_version=myjetwallet.service.clientportfoliohistory-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
+#    - name: Publish image
+#      uses: docker/build-push-action@v1
+#      with:
+#        username: ${{ github.actor }}
+#        password: ${{ secrets.GITHUB_TOKEN }}
+#        path: ./publish-api
+#        registry: docker.pkg.github.com
+#        repository: ${{ secrets.ORG_NAME }}/service.clientportfoliohistory/myjetwallet.service.clientportfoliohistory-test
+#        tags: latest
+#        build_args: app_version=myjetwallet.service.clientportfoliohistory-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
     - name: Publish image ST
       uses: docker/build-push-action@v1
