@@ -50,7 +50,7 @@ namespace Service.ClientPortfolioHistory
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcSchema<HelloService, IHelloService>();
+                endpoints.MapGrpcSchema<PortfolioGraphService, IPortfolioGraphService>();
 
                 endpoints.MapGrpcSchemaRegistry();
 

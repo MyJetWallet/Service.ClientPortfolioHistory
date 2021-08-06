@@ -5,9 +5,9 @@ using Service.ClientPortfolioHistory.Grpc.Models;
 namespace Service.ClientPortfolioHistory.Grpc
 {
     [ServiceContract]
-    public interface IHelloService
+    public interface IPortfolioGraphService
     {
         [OperationContract]
-        Task<HelloMessage> SayHelloAsync(HelloRequest request);
+        Task<HistoryGraphResponse> CreateHistoryGraph(HistoryGraphRequest request);
     }
 }

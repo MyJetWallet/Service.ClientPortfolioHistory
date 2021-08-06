@@ -11,6 +11,6 @@ namespace Service.ClientPortfolioHistory.Client
         {
         }
 
-        public IHelloService GetHelloService() => CreateGrpcService<IHelloService>();
+        public IPortfolioGraphService GetHelloService() => CreateGrpcService<IPortfolioGraphService>();
     }
 }

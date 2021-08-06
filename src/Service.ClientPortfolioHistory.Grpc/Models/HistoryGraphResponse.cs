@@ -1,12 +1,14 @@
+using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Service.ClientPortfolioHistory.Domain.Models;
 
 namespace Service.ClientPortfolioHistory.Grpc.Models
 {
     [DataContract]
-    public class HelloMessage : IHelloMessage
+    public class HistoryGraphResponse
     {
         [DataMember(Order = 1)]
-        public string Message { get; set; }
+        public Dictionary<DateTime, decimal> Graph { get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Service.ClientPortfolioHistory.Client
         {
             var factory = new ClientPortfolioHistoryClientFactory(grpcServiceUrl);
 
-            builder.RegisterInstance(factory.GetHelloService()).As<IHelloService>().SingleInstance();
+            builder.RegisterInstance(factory.GetHelloService()).As<IPortfolioGraphService>().SingleInstance();
         }
     }
 }

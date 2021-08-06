@@ -19,8 +19,8 @@ namespace TestApp
             var factory = new ClientPortfolioHistoryClientFactory("http://localhost:5001");
             var client = factory.GetHelloService();
 
-            var resp = await  client.SayHelloAsync(new HelloRequest(){Name = "Alex"});
-            Console.WriteLine(resp?.Message);
+            // var resp = await  client.SayHelloAsync(new HistoryGraphRequest(){Name = "Alex"});
+            // Console.WriteLine(resp?.Message);
 
             Console.WriteLine("End");
             Console.ReadLine();
