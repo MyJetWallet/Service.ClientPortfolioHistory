@@ -28,7 +28,7 @@ namespace Service.ClientPortfolioHistory.Services
         private readonly ILogger<PortfolioGraphService> _logger;
         
         private const string UsdAsset = "USD";
-        private readonly TimeSpan _period = TimeSpan.FromMinutes(Program.Settings.GraphPeriodInMin);
+        private readonly TimeSpan _period;
         private readonly List<DateTime> _timeSlots = new List<DateTime>();
         public PortfolioGraphService(ISimpleTradingCandlesHistoryGrpc candleService, ILogger<PortfolioGraphService> logger, IClientWalletService clientWalletService, IOperationHistoryService historyService, IWalletBalanceService walletBalanceService) 
         {
@@ -37,6 +37,7 @@ namespace Service.ClientPortfolioHistory.Services
             _clientWalletService = clientWalletService;
             _historyService = historyService;
             _walletBalanceService = walletBalanceService;
+            _period = TimeSpan.FromMinutes(Program.Settings != null ? Program.Settings.GraphPeriodInMin : 5);
         }
 
 
