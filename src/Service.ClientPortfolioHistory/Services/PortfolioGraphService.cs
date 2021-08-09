@@ -176,13 +176,13 @@ namespace Service.ClientPortfolioHistory.Services
             try
             {
                 return !candleDict.TryGetValue(timePoint, out var price) 
-                        ? candleDict.First(c => c.Key <= timePoint).Value 
+                        ? candleDict.Last().Value 
                         : price;
             }
             catch
             {
                 _logger.LogError("Unable to find candle for asset {Asset} for timepoint {TimePoint}", asset, timePoint);
-                return candleDict.Last().Value;
+                return 0;
             }
         }
 
@@ -206,7 +206,7 @@ namespace Service.ClientPortfolioHistory.Services
                 {
                     _logger.LogWarning(
                         "Unable get minute candles for instrument {Instrument} on time period {from} {to}",
-                        $"{asset}USD", from, to);
+                        $"{asset}USD", from, candles.Last().DateTime);
 
                     to = candles.Last().DateTime.Subtract(TimeSpan.FromHours(1));
                     var archiveCandles = (await _candleService.GetCandlesHistoryAsync(
