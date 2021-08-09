@@ -125,7 +125,6 @@ namespace Service.ClientPortfolioHistory.Services
             {
                 var balance = assetList.Sum(asset => balancesDictionaryInUsdByAsset[asset][time]);
                 totalBalanceInUsd.Add(time, balance);
-                Console.WriteLine($"{time} {balance}");
             }
 
             if (request.TargetAsset == UsdAsset)
@@ -141,7 +140,6 @@ namespace Service.ClientPortfolioHistory.Services
                 var price = 1 / GetCandlePoint(time, candles, request.TargetAsset);
                 var balance = totalBalanceInUsd[time] * price;
                 totalBalanceInTarget.Add(time, balance);
-                Console.WriteLine($"{time} {balance}");
             }
 
             return new HistoryGraphResponse()
@@ -168,49 +166,59 @@ namespace Service.ClientPortfolioHistory.Services
         {
             try
             {
-                decimal price;
-                while (!candleDict.TryGetValue(timePoint, out price))
-                {
-                    timePoint = timePoint.Subtract(TimeSpan.FromMinutes(1));
-                }
-
-                return price;
+                return !candleDict.TryGetValue(timePoint, out var price) 
+                        ? candleDict.First(c => c.Key <= timePoint).Value 
+                        : price;
             }
             catch
             {
                 _logger.LogError("Unable to find candle for asset {Asset} for timepoint {TimePoint}", asset, timePoint);
-                throw;
+                return candleDict.Last().Value;
             }
         }
 
         private async Task<Dictionary<DateTime, decimal>> GetCandlesDictionary(string asset, DateTime from, DateTime to)
         {
-            var candles = (await _candleService.GetCandlesHistoryAsync(new GetCandlesHistoryGrpcRequestContract()
+            try
             {
-                Bid = false,
-                CandleType = CandleTypeGrpcModel.Minute,
-                From = from,
-                To = to,
-                Instrument = $"{asset}USD"
-            })).OrderByDescending(e=>e.DateTime).ToList();
-
-            if (candles.Last().DateTime != from)
-            {
-                _logger.LogWarning("Unable get minute candles for instrument {Instrument} on time period {from} {to}", $"{asset}USD", from, to);
-
-                to = candles.Last().DateTime.Subtract(TimeSpan.FromHours(1));
-                var archiveCandles = (await _candleService.GetCandlesHistoryAsync(new GetCandlesHistoryGrpcRequestContract()
+                if (asset == UsdAsset)
+                    return new Dictionary<DateTime, decimal>();
+                
+                var candles = (await _candleService.GetCandlesHistoryAsync(new GetCandlesHistoryGrpcRequestContract()
                 {
                     Bid = false,
-                    CandleType = CandleTypeGrpcModel.Hour,
+                    CandleType = CandleTypeGrpcModel.Minute,
                     From = from,
                     To = to,
-                    Instrument = $"{asset}USD"
-                })).OrderByDescending(e=>e.DateTime).ToList();
-                candles.AddRange(archiveCandles);
-            }
+                    Instrument = $"{asset}USD",
+                })).OrderByDescending(e => e.DateTime).ToList();
 
-            return candles.ToDictionary(key => key.DateTime, value => (decimal)value.Close);
+                if (candles.Last().DateTime != from)
+                {
+                    _logger.LogWarning(
+                        "Unable get minute candles for instrument {Instrument} on time period {from} {to}",
+                        $"{asset}USD", from, to);
+
+                    to = candles.Last().DateTime.Subtract(TimeSpan.FromHours(1));
+                    var archiveCandles = (await _candleService.GetCandlesHistoryAsync(
+                        new GetCandlesHistoryGrpcRequestContract()
+                        {
+                            Bid = false,
+                            CandleType = CandleTypeGrpcModel.Hour,
+                            From = from,
+                            To = to,
+                            Instrument = $"{asset}USD"
+                        })).OrderByDescending(e => e.DateTime).ToList();
+                    candles.AddRange(archiveCandles);
+                }
+
+                return candles.ToDictionary(key => key.DateTime, value => (decimal)value.Close);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }
