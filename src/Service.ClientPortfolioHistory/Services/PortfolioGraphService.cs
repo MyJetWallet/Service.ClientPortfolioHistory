@@ -43,8 +43,14 @@ namespace Service.ClientPortfolioHistory.Services
 
         public async Task<HistoryGraphResponse> CreateHistoryGraph(HistoryGraphRequest request)
         {
-            var to = request.To;
-            var from = request.From;
+            var to = request.To == DateTime.MinValue
+                ? DateTime.UtcNow
+                : request.To;
+            
+            var from = request.From == DateTime.MinValue
+                ? to.Subtract(TimeSpan.FromDays(90))
+                : request.From;
+            
             var wallets = await _clientWalletService.GetWalletsByClient(new JetClientIdentity()
             {
                 ClientId = request.ClientId,
@@ -56,6 +62,9 @@ namespace Service.ClientPortfolioHistory.Services
             var operations = new List<OperationUpdate>();
             foreach (var wallet in wallets.Wallets)
             {
+                if (wallet.CreatedAt != DateTime.MinValue)
+                    from = wallet.CreatedAt;
+                
                 var ops = await _historyService.GetBalanceUpdatesAsync(new GetOperationsRequest()
                 {
                     WalletId = wallet.WalletId,
