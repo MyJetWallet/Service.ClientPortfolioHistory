@@ -48,7 +48,7 @@ namespace Service.ClientPortfolioHistory.Services
                 : request.To;
             
             var from = request.From == DateTime.MinValue
-                ? to.Subtract(TimeSpan.FromDays(90))
+                ? to.Subtract(TimeSpan.FromDays(30))
                 : request.From;
             
             var wallets = await _clientWalletService.GetWalletsByClient(new JetClientIdentity()
@@ -190,27 +190,55 @@ namespace Service.ClientPortfolioHistory.Services
         {
             try
             {
+                var tries = 0;
+                var maxTries = 10;
+
                 if (asset == UsdAsset)
                     return new Dictionary<DateTime, decimal>();
-                
-                var candles = (await _candleService.GetCandlesHistoryAsync(new GetCandlesHistoryGrpcRequestContract()
+
+                var candles = (await _candleService.GetCandlesHistoryAsync(new GetCandlesHistoryGrpcRequestContract
                 {
                     Bid = false,
                     CandleType = CandleTypeGrpcModel.Minute,
                     From = from,
                     To = to,
-                    Instrument = $"{asset}USD",
+                    Instrument = $"{asset}USD"
                 })).OrderByDescending(e => e.DateTime).ToList();
+
+
+                while (!candles.Any())
+                {
+                    _logger.LogWarning(
+                        "Unable get minute candles for instrument {Instrument} on time period from: {from} to: {to}",
+                        $"{asset}USD", from, to);
+                    
+                    tries++;
+                    if (tries > maxTries)
+                        break;
+                    
+                    candles = (await _candleService.GetCandlesHistoryAsync(
+                        new GetCandlesHistoryGrpcRequestContract
+                        {
+                            Bid = false,
+                            CandleType = CandleTypeGrpcModel.Hour,
+                            From = from,
+                            To = to,
+                            Instrument = $"{asset}USD"
+                        })).OrderByDescending(e => e.DateTime).ToList();
+                    
+                    if(!candles.Any())
+                        from = from.Subtract(TimeSpan.FromDays(3));
+                }
 
                 if (candles.Last().DateTime != from)
                 {
                     _logger.LogWarning(
-                        "Unable get minute candles for instrument {Instrument} on time period {from} {to}",
+                        "Unable get minute candles for instrument {Instrument} on time period from: {from} to: {to}",
                         $"{asset}USD", from, candles.Last().DateTime);
 
                     to = candles.Last().DateTime.Subtract(TimeSpan.FromHours(1));
                     var archiveCandles = (await _candleService.GetCandlesHistoryAsync(
-                        new GetCandlesHistoryGrpcRequestContract()
+                        new GetCandlesHistoryGrpcRequestContract
                         {
                             Bid = false,
                             CandleType = CandleTypeGrpcModel.Hour,
@@ -225,7 +253,7 @@ namespace Service.ClientPortfolioHistory.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.LogError(e, "When trying to get candles for instrument {Instrument}", $"{asset}USD");
                 throw;
             }
         }
