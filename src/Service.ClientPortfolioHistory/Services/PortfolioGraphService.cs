@@ -175,6 +175,9 @@ namespace Service.ClientPortfolioHistory.Services
         {
             try
             {
+                if (!candleDict.Any())
+                    return 0;
+                
                 return !candleDict.TryGetValue(timePoint, out var price) 
                         ? candleDict.Last().Value 
                         : price;
@@ -254,7 +257,7 @@ namespace Service.ClientPortfolioHistory.Services
             catch (Exception e)
             {
                 _logger.LogError(e, "When trying to get candles for instrument {Instrument}", $"{asset}USD");
-                throw;
+                return new Dictionary<DateTime, decimal>();
             }
         }
     }
