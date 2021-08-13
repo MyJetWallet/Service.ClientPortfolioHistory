@@ -10,5 +10,8 @@ namespace Service.ClientPortfolioHistory.Grpc.Models
     {
         [DataMember(Order = 1)]
         public Dictionary<DateTime, decimal> Graph { get; set; }
+        
+        [DataMember(Order = 2)]
+        public PeriodEnum Period { get; set; }
     }
 }
