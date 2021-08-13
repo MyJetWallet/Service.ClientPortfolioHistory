@@ -18,5 +18,7 @@ namespace Service.ClientPortfolioHistory.Grpc.Models
         public DateTime From { get; set; }
         [DataMember(Order = 6)]
         public DateTime To { get; set; }
+        [DataMember(Order = 7)]
+        public PeriodEnum Period { get; set; }
     }
 }
