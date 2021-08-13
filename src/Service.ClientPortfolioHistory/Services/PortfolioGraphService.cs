@@ -28,7 +28,6 @@ namespace Service.ClientPortfolioHistory.Services
         private readonly ILogger<PortfolioGraphService> _logger;
         
         private const string UsdAsset = "USD";
-        private readonly TimeSpan _period;
         private readonly List<DateTime> _timeSlots = new List<DateTime>();
         public PortfolioGraphService(ISimpleTradingCandlesHistoryGrpc candleService, ILogger<PortfolioGraphService> logger, IClientWalletService clientWalletService, IOperationHistoryService historyService, IWalletBalanceService walletBalanceService) 
         {
@@ -37,7 +36,6 @@ namespace Service.ClientPortfolioHistory.Services
             _clientWalletService = clientWalletService;
             _historyService = historyService;
             _walletBalanceService = walletBalanceService;
-            _period = TimeSpan.FromMinutes(Program.Settings != null ? Program.Settings.GraphPeriodInMin : 5);
         }
 
 
@@ -48,8 +46,10 @@ namespace Service.ClientPortfolioHistory.Services
                 : request.To;
             
             var from = request.From == DateTime.MinValue
-                ? to.Subtract(TimeSpan.FromDays(30))
+                ? GetFromPoint(request.Period, to)
                 : request.From;
+
+            var step = GetStepByPeriod(request.Period);
             
             var wallets = await _clientWalletService.GetWalletsByClient(new JetClientIdentity()
             {
@@ -62,7 +62,7 @@ namespace Service.ClientPortfolioHistory.Services
             var operations = new List<OperationUpdate>();
             foreach (var wallet in wallets.Wallets)
             {
-                if (wallet.CreatedAt != DateTime.MinValue)
+                if (wallet.CreatedAt != DateTime.MinValue && request.Period == PeriodEnum.All)
                     from = wallet.CreatedAt;
                 
                 var ops = await _historyService.GetBalanceUpdatesAsync(new GetOperationsRequest()
@@ -89,7 +89,7 @@ namespace Service.ClientPortfolioHistory.Services
             while (toRounded>fromRounded)
             {
                 _timeSlots.Add(toRounded);
-                toRounded -= _period;
+                toRounded -= step;
             }
 
             var assetList = initialBalances.Keys.ToList();
@@ -98,7 +98,7 @@ namespace Service.ClientPortfolioHistory.Services
             
             foreach (var asset in assetList)
             {
-                var candleDictionary = await GetCandlesDictionary(asset, from, to);
+                var candleDictionary = await GetCandlesDictionary(asset, from, to, request.Period);
                 var balanceDictionary = new Dictionary<DateTime, decimal>();
                 var balanceDictionaryInUsd = new Dictionary<DateTime, decimal>();
 
@@ -143,7 +143,7 @@ namespace Service.ClientPortfolioHistory.Services
                 };
             
             var totalBalanceInTarget = new Dictionary<DateTime, decimal>();
-            var candles = await GetCandlesDictionary(request.TargetAsset, from, to);
+            var candles = await GetCandlesDictionary(request.TargetAsset, from, to, request.Period);
             foreach (var time in _timeSlots)
             {
                 var price = 1 / GetCandlePoint(time, candles, request.TargetAsset);
@@ -179,17 +179,17 @@ namespace Service.ClientPortfolioHistory.Services
                     return 0;
                 
                 return !candleDict.TryGetValue(timePoint, out var price) 
-                        ? candleDict.Last().Value 
+                        ? candleDict.First(c=>c.Key < timePoint).Value 
                         : price;
             }
             catch
             {
                 _logger.LogError("Unable to find candle for asset {Asset} for timepoint {TimePoint}", asset, timePoint);
-                return 0;
+                return candleDict.LastOrDefault().Value;
             }
         }
 
-        private async Task<Dictionary<DateTime, decimal>> GetCandlesDictionary(string asset, DateTime from, DateTime to)
+        private async Task<Dictionary<DateTime, decimal>> GetCandlesDictionary(string asset, DateTime from, DateTime to, PeriodEnum period)
         {
             try
             {
@@ -199,10 +199,12 @@ namespace Service.ClientPortfolioHistory.Services
                 if (asset == UsdAsset)
                     return new Dictionary<DateTime, decimal>();
 
+                var candleType = GetCandleTypeByPeriod(period);
+                
                 var candles = (await _candleService.GetCandlesHistoryAsync(new GetCandlesHistoryGrpcRequestContract
                 {
                     Bid = false,
-                    CandleType = CandleTypeGrpcModel.Minute,
+                    CandleType = candleType,
                     From = from,
                     To = to,
                     Instrument = $"{asset}USD"
@@ -223,7 +225,7 @@ namespace Service.ClientPortfolioHistory.Services
                         new GetCandlesHistoryGrpcRequestContract
                         {
                             Bid = false,
-                            CandleType = CandleTypeGrpcModel.Hour,
+                            CandleType = GetCandleTypeByPeriod(period+1),
                             From = from,
                             To = to,
                             Instrument = $"{asset}USD"
@@ -244,7 +246,7 @@ namespace Service.ClientPortfolioHistory.Services
                         new GetCandlesHistoryGrpcRequestContract
                         {
                             Bid = false,
-                            CandleType = CandleTypeGrpcModel.Hour,
+                            CandleType = GetCandleTypeByPeriod(period+1),
                             From = from,
                             To = to,
                             Instrument = $"{asset}USD"
@@ -259,6 +261,49 @@ namespace Service.ClientPortfolioHistory.Services
                 _logger.LogError(e, "When trying to get candles for instrument {Instrument}", $"{asset}USD");
                 return new Dictionary<DateTime, decimal>();
             }
+        }
+
+
+
+        private TimeSpan GetStepByPeriod(PeriodEnum period)
+        {
+            return period switch
+            {
+                PeriodEnum.OneDay => TimeSpan.FromMinutes(5),
+                PeriodEnum.OneWeek => TimeSpan.FromHours(1),
+                PeriodEnum.OneMonth => TimeSpan.FromHours(4),
+                PeriodEnum.ThreeMonth => TimeSpan.FromDays(1),
+                PeriodEnum.OneYear => TimeSpan.FromDays(7),
+                PeriodEnum.All => TimeSpan.FromDays(7),
+                _ => TimeSpan.FromDays(1)
+            };
+        }
+        private DateTime GetFromPoint(PeriodEnum period, DateTime to)
+        {
+            return period switch
+            {
+                PeriodEnum.OneDay => to.Subtract(TimeSpan.FromDays(1)),
+                PeriodEnum.OneWeek => to.Subtract(TimeSpan.FromDays(7)),
+                PeriodEnum.OneMonth => to.AddMonths(-1),
+                PeriodEnum.ThreeMonth => to.AddMonths(-3),
+                PeriodEnum.OneYear => to.AddYears(-1),
+                PeriodEnum.All => to.AddYears(-1),
+                _ => throw new ArgumentOutOfRangeException(nameof(period), period, null)
+            };
+        }
+        
+        private CandleTypeGrpcModel GetCandleTypeByPeriod(PeriodEnum period)
+        {
+            return period switch
+            {
+                PeriodEnum.OneDay => CandleTypeGrpcModel.Minute,
+                PeriodEnum.OneWeek => CandleTypeGrpcModel.Hour,
+                PeriodEnum.OneMonth => CandleTypeGrpcModel.Hour,
+                PeriodEnum.ThreeMonth => CandleTypeGrpcModel.Day,
+                PeriodEnum.OneYear => CandleTypeGrpcModel.Day,
+                PeriodEnum.All => CandleTypeGrpcModel.Day,
+                _ => CandleTypeGrpcModel.Day
+            };
         }
     }
 }
