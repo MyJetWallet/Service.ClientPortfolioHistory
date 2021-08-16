@@ -8,6 +8,7 @@ using Service.BalanceHistory.Client;
 using Service.BalanceHistory.Domain.Models;
 using Service.BalanceHistory.Grpc;
 using Service.BalanceHistory.Grpc.Models;
+using Service.Balances.Domain.Models;
 using Service.Balances.Grpc;
 using Service.Balances.Grpc.Models;
 using Service.ClientPortfolioHistory.Grpc;
@@ -77,10 +78,14 @@ namespace Service.ClientPortfolioHistory.Services
                 {
                     WalletId = wallet.WalletId
                 });
-                
-                if (!balanceResponse.Balances.Any())
-                   _logger.LogWarning("Unable to find any actual balances for user {ClientId} and wallet {WalletId}. Unable to create graph without balances"); 
-                    
+
+                if (balanceResponse == null || balanceResponse.Balances == null || !balanceResponse.Balances.Any())
+                {
+                    _logger.LogWarning(
+                        "Unable to find any actual balances for user {ClientId} and wallet {WalletId}. Unable to create graph without balances");
+                    balanceResponse.Balances = new List<WalletBalance>();
+                }
+
                 initialBalances = balanceResponse.Balances.ToDictionary(key => key.AssetId, value => (decimal) value.Balance);
             }
 
