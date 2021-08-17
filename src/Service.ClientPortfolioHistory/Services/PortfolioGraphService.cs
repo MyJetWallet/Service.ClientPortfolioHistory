@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Domain;
+using MyJetWallet.Domain.Assets;
+using Service.AssetsDictionary.Client;
+using Service.AssetsDictionary.Domain.Models;
 using Service.BalanceHistory.Client;
 using Service.BalanceHistory.Domain.Models;
 using Service.BalanceHistory.Grpc;
@@ -26,17 +29,19 @@ namespace Service.ClientPortfolioHistory.Services
         private readonly ISimpleTradingCandlesHistoryGrpc _candleService;
         private readonly IClientWalletService _clientWalletService;
         private readonly IWalletBalanceService _walletBalanceService;
+        private readonly IAssetsDictionaryClient _assetsDictionary;
         private readonly ILogger<PortfolioGraphService> _logger;
         
         private const string UsdAsset = "USD";
         private readonly List<DateTime> _timeSlots = new List<DateTime>();
-        public PortfolioGraphService(ISimpleTradingCandlesHistoryGrpc candleService, ILogger<PortfolioGraphService> logger, IClientWalletService clientWalletService, IOperationHistoryService historyService, IWalletBalanceService walletBalanceService) 
+        public PortfolioGraphService(ISimpleTradingCandlesHistoryGrpc candleService, ILogger<PortfolioGraphService> logger, IClientWalletService clientWalletService, IOperationHistoryService historyService, IWalletBalanceService walletBalanceService, IAssetsDictionaryClient assetsDictionary) 
         {
             _candleService = candleService;
             _logger = logger;
             _clientWalletService = clientWalletService;
             _historyService = historyService;
             _walletBalanceService = walletBalanceService;
+            _assetsDictionary = assetsDictionary;
         }
 
 
@@ -51,7 +56,15 @@ namespace Service.ClientPortfolioHistory.Services
                 : request.From;
 
             var step = GetStepByPeriod(request.Period);
-            
+
+            List<IAsset> assets = new();
+            while (!assets.Any())
+            {
+                assets = _assetsDictionary.GetAllAssets().ToList();
+            }
+
+            var assetAccuracy = assets.First(t => t.Symbol == request.TargetAsset).Accuracy;
+
             var wallets = await _clientWalletService.GetWalletsByClient(new JetClientIdentity()
             {
                 ClientId = request.ClientId,
@@ -140,20 +153,27 @@ namespace Service.ClientPortfolioHistory.Services
                 var balance = assetList.Sum(asset => balancesDictionaryInUsdByAsset[asset][time]);
                 totalBalanceInUsd.Add(time, balance);
             }
-
+            
             if (request.TargetAsset == UsdAsset)
+            {
+                foreach (var (key, value) in totalBalanceInUsd)
+                {
+                    totalBalanceInUsd[key] = Math.Round(value, assetAccuracy);
+                }
                 return new HistoryGraphResponse()
                 {
                     Graph = totalBalanceInUsd
                 };
-            
+            }
+
             var totalBalanceInTarget = new Dictionary<DateTime, decimal>();
             var candles = await GetCandlesDictionary(request.TargetAsset, from, to, request.Period);
             foreach (var time in _timeSlots)
             {
                 var price = 1 / GetCandlePoint(time, candles, request.TargetAsset);
                 var balance = totalBalanceInUsd[time] * price;
-                totalBalanceInTarget.Add(time, balance);
+                var roundedBalance = Math.Round(balance, assetAccuracy);
+                totalBalanceInTarget.Add(time, roundedBalance);
             }
 
             return new HistoryGraphResponse()

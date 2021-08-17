@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>cfef7f1c-bbfe-44fb-bdf1-603af5c9f8bd</UserSecretsId>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="MyJetWallet.Sdk.GrpcMetrics" Version="2.0.0" />
     <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="1.2.0" />
+    <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="1.7.0" />
     <PackageReference Include="MyJetWallet.Service.BalanceHistory.Client" Version="2.0.7" />
     <PackageReference Include="MyJetWallet.Service.Balances.Client" Version="1.0.7" />
     <PackageReference Include="MyJetWallet.Service.ClientWallets.Client" Version="1.2.1" />

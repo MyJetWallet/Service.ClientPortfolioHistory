@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
+using Service.AssetsDictionary.Client;
 using Service.BalanceHistory.Domain.Models;
 using Service.BalanceHistory.Grpc;
 using Service.Balances.Grpc;
@@ -24,6 +25,7 @@ namespace Service.ClientPortfolioHistory.Tests
         private ILogger<PortfolioGraphService> _logger;
         private IClientWalletService _clientWallet;
         private IWalletBalanceService _walletBalance;
+        private IAssetsDictionaryClient _assetsDictionary;
         [SetUp]
         public void Setup()
         {
@@ -31,6 +33,7 @@ namespace Service.ClientPortfolioHistory.Tests
              _candleService = new CandleServiceMock();
              _clientWallet = new ClientWalletMock();
              _walletBalance = new WalletBalanceMock();
+             _assetsDictionary = new AssetDictionaryMock();
              _logger = new NullLogger<PortfolioGraphService>();
         }
 
@@ -44,7 +47,7 @@ namespace Service.ClientPortfolioHistory.Tests
         [Theory]
         public async Task TestGraphPoints((string targetAsset, decimal rateToUsd) input)
         {           
-            _graphService = new PortfolioGraphService(_candleService, _logger, _clientWallet, _historyMock, _walletBalance);
+            _graphService = new PortfolioGraphService(_candleService, _logger, _clientWallet, _historyMock, _walletBalance, _assetsDictionary);
 
             var toPoint = DateTime.Parse("2020-01-04T00:00:00");
             var fromPoint = DateTime.Parse("2020-01-02T09:00:00");
@@ -76,7 +79,7 @@ namespace Service.ClientPortfolioHistory.Tests
         [Theory]
         public async Task TestGraphPointsWithIncompleteCandles((string targetAsset, decimal rateToUsd) input)
         {           
-            _graphService = new PortfolioGraphService(_candleService, _logger, _clientWallet, _historyMock, _walletBalance);
+            _graphService = new PortfolioGraphService(_candleService, _logger, _clientWallet, _historyMock, _walletBalance, _assetsDictionary);
 
             var toPoint = DateTime.Parse("2020-01-04T00:00:00");
             var fromPoint = DateTime.Parse("2019-12-02T09:00:00");

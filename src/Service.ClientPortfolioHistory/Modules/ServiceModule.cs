@@ -3,6 +3,7 @@ using Autofac.Core;
 using Autofac.Core.Registration;
 using MyJetWallet.Sdk.Grpc;
 using MyJetWallet.Sdk.NoSql;
+using Service.AssetsDictionary.Client;
 using Service.BalanceHistory.Client;
 using Service.Balances.Client;
 using Service.ClientPortfolioHistory.Services;
@@ -32,8 +33,8 @@ namespace Service.ClientPortfolioHistory.Modules
                 Program.Settings.MaxCachedEntities);
             
             builder.RegisterClientWalletsClients(myNoSqlClient, Program.Settings.ClientWalletsGrpcServiceUrl);
-
-
+            builder.RegisterAssetsDictionaryClients(myNoSqlClient);
+            
             builder.RegisterType<PortfolioGraphService>().AsSelf();
         }
     }
