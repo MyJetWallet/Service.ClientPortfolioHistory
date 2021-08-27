@@ -78,15 +78,8 @@ namespace Service.ClientPortfolioHistory.Services
             {
                 if (wallet.CreatedAt != DateTime.MinValue && request.Period == PeriodEnum.All)
                     from = wallet.CreatedAt;
-                
-                var ops = await _historyService.GetBalanceUpdatesAsync(new GetOperationsRequest()
-                {
-                    WalletId = wallet.WalletId,
-                    From = from,
-                    To = to
-                });
-                
-                operations.AddRange(ops.OperationUpdates);
+
+                operations = await GetOperations(assets, wallet.WalletId, from);
                 var balanceResponse = await _walletBalanceService.GetWalletBalancesAsync(new GetWalletBalancesRequest()
                 {
                     WalletId = wallet.WalletId
@@ -288,6 +281,40 @@ namespace Service.ClientPortfolioHistory.Services
             }
         }
 
+        private async Task<List<OperationUpdate>> GetOperations(List<IAsset> assetIds, string walletId, DateTime from)
+        {
+            const int batchSize = 100;
+            var operation = new List<OperationUpdate>();
+            foreach (var assetId in assetIds)
+            {
+                var ops = await _historyService.GetBalanceUpdatesAsync(new GetOperationsRequest()
+                {
+                    WalletId = walletId,
+                    AssetId = assetId.Symbol,
+                    BatchSize = batchSize,
+                    LastDate = DateTime.UtcNow
+                });
+                if(!ops.OperationUpdates.Any())
+                    continue;
+                
+                operation.AddRange(ops.OperationUpdates);
+                var lastSeen = ops.OperationUpdates.Last().TimeStamp;
+                while (ops.OperationUpdates.Count == batchSize && lastSeen <= from)
+                {
+                    ops = await _historyService.GetBalanceUpdatesAsync(new GetOperationsRequest()
+                    {
+                        WalletId = walletId,
+                        AssetId = assetId.Symbol,
+                        BatchSize = batchSize,
+                        LastDate = lastSeen
+                    });
+                    operation.AddRange(ops.OperationUpdates);
+                    lastSeen = ops.OperationUpdates.Last().TimeStamp;
+                }
+            }
+
+            return operation;
+        }
 
 
         private TimeSpan GetStepByPeriod(PeriodEnum period)

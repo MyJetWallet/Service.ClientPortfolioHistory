@@ -71,7 +71,7 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
             });
             return new OperationUpdateList()
             {
-                OperationUpdates = updates.Where(t=>t.TimeStamp <= request.To && t.TimeStamp >=request.From).ToList()
+                OperationUpdates = updates.ToList()
             };
         }
     }

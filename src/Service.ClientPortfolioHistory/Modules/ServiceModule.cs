@@ -29,8 +29,7 @@ namespace Service.ClientPortfolioHistory.Modules
             builder.RegisterBalancesClients(Program.Settings.BalancesGrpcServiceUrl, myNoSqlClient);
             
             builder.RegisterIndexPricesClient(myNoSqlClient);
-            builder.RegisterOperationHistoryClient(myNoSqlClient, Program.Settings.BalanceHistoryGrpcServiceUrl,
-                Program.Settings.MaxCachedEntities);
+            builder.RegisterOperationHistoryService(Program.Settings.BalanceHistoryGrpcServiceUrl);
             
             builder.RegisterClientWalletsClients(myNoSqlClient, Program.Settings.ClientWalletsGrpcServiceUrl);
             builder.RegisterAssetsDictionaryClients(myNoSqlClient);

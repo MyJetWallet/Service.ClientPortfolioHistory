@@ -50,10 +50,11 @@ namespace Service.ClientPortfolioHistory.Tests
             _graphService = new PortfolioGraphService(_candleService, _logger, _clientWallet, _historyMock, _walletBalance, _assetsDictionary);
 
             var toPoint = DateTime.Parse("2020-01-04T00:00:00");
-            var fromPoint = DateTime.Parse("2020-01-02T09:00:00");
+            var fromPoint = DateTime.Parse("2019-12-03T19:00:00");
 
             var btcToUsd = 10;
             var ethToUsd = 2;
+            var ltcToUsdComplete = 2;
 
             var response = await _graphService.CreateHistoryGraph(new HistoryGraphRequest()
             {
@@ -66,14 +67,13 @@ namespace Service.ClientPortfolioHistory.Tests
             var pointBtc28 = DateTime.Parse("2020-01-03T00:00:00");
             var pointBtc32 = DateTime.Parse("2020-01-02T20:00:00");
             var pointEth24 = DateTime.Parse("2020-01-02T17:00:00");
-            var pointBtc2 = DateTime.Parse("2020-01-02T14:00:00");
-            var pointBtc0 = DateTime.Parse("2020-01-02T10:00:00");
-            
+            var pointEth0 = DateTime.Parse("2019-12-03T20:00:00");
+
             Assert.AreEqual(graph[pointBtc28], (28 * btcToUsd + 44 * ethToUsd)/input.rateToUsd);
             Assert.AreEqual(graph[pointBtc32], (32 * btcToUsd + 44 * ethToUsd)/input.rateToUsd);
             Assert.AreEqual(graph[pointEth24], (2 * btcToUsd + 44 * ethToUsd)/input.rateToUsd);
-            Assert.AreEqual(graph[pointBtc2], (2 * btcToUsd + 24 * ethToUsd)/input.rateToUsd);
-            Assert.AreEqual(graph[pointBtc0], (0 * btcToUsd + 24 * ethToUsd)/input.rateToUsd);
+            Assert.AreEqual(graph[pointEth0], (0 * btcToUsd + 0 * ethToUsd)/input.rateToUsd);
+
         }
         
         [Theory]
