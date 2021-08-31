@@ -32,5 +32,10 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
         {
             throw new System.NotImplementedException();
         }
+
+        public async Task<SetBaseAssetResponse> SetBaseAssetAsync(SetBaseAssetRequest request)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
