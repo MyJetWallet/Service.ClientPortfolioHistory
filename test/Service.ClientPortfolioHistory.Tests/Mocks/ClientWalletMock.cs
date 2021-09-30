@@ -37,5 +37,10 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
         {
             throw new System.NotImplementedException();
         }
+
+        public async Task SetEnableUseTestNetAsync(SetEnableUseTestNetRequest request)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
