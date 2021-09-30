@@ -17,6 +17,7 @@ using Service.Balances.Grpc.Models;
 using Service.ClientPortfolioHistory.Grpc;
 using Service.ClientPortfolioHistory.Grpc.Models;
 using Service.ClientWallets.Grpc;
+using SimpleTrading.Abstraction.Candles;
 using SimpleTrading.CandlesHistory.Grpc;
 using SimpleTrading.CandlesHistory.Grpc.Contracts;
 using SimpleTrading.CandlesHistory.Grpc.Models;
@@ -344,17 +345,17 @@ namespace Service.ClientPortfolioHistory.Services
             };
         }
         
-        private CandleTypeGrpcModel GetCandleTypeByPeriod(PeriodEnum period)
+        private CandleType GetCandleTypeByPeriod(PeriodEnum period)
         {
             return period switch
             {
-                PeriodEnum.OneDay => CandleTypeGrpcModel.Minute,
-                PeriodEnum.OneWeek => CandleTypeGrpcModel.Hour,
-                PeriodEnum.OneMonth => CandleTypeGrpcModel.Hour,
-                PeriodEnum.ThreeMonth => CandleTypeGrpcModel.Day,
-                PeriodEnum.OneYear => CandleTypeGrpcModel.Day,
-                PeriodEnum.All => CandleTypeGrpcModel.Day,
-                _ => CandleTypeGrpcModel.Day
+                PeriodEnum.OneDay => CandleType.Minute,
+                PeriodEnum.OneWeek => CandleType.Hour,
+                PeriodEnum.OneMonth => CandleType.Hour,
+                PeriodEnum.ThreeMonth => CandleType.Day,
+                PeriodEnum.OneYear => CandleType.Day,
+                PeriodEnum.All => CandleType.Day,
+                _ => CandleType.Day
             };
         }
     }

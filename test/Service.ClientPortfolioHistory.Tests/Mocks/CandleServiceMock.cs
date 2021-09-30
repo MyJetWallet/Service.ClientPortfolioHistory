@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SimpleTrading.Abstraction.Candles;
 using SimpleTrading.CandlesHistory.Grpc;
 using SimpleTrading.CandlesHistory.Grpc.Contracts;
 using SimpleTrading.CandlesHistory.Grpc.Models;
@@ -44,7 +45,7 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
                 return list;
             }
 
-            if (requestContract.Instrument == "LTCUSD" && requestContract.CandleType == CandleTypeGrpcModel.Minute)
+            if (requestContract.Instrument == "LTCUSD" && requestContract.CandleType == CandleType.Minute)
             {
                 var list = new List<CandleGrpcModel>();
                 var to = requestContract.To;
@@ -62,7 +63,7 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
                 return list;
             }
             
-            if (requestContract.Instrument == "LTCUSD" && requestContract.CandleType == CandleTypeGrpcModel.Hour)
+            if (requestContract.Instrument == "LTCUSD" && requestContract.CandleType == CandleType.Hour)
             {
                 var list = new List<CandleGrpcModel>();
                 var to = requestContract.To; 
