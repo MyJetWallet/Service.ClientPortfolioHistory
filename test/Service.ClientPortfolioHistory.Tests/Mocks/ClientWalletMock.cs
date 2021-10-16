@@ -42,5 +42,10 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
         {
             throw new System.NotImplementedException();
         }
+
+        public Task<GetAllClientsResponse> GetAllClientsAsync()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
