@@ -314,7 +314,7 @@ namespace Service.ClientPortfolioHistory.Services
                 }
             }
 
-            return operation;
+            return operation.Where(t=>t.Status == OperationStatuses.Completed).ToList();
         }
 
 
