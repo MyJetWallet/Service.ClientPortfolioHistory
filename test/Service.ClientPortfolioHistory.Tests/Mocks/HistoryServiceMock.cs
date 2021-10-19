@@ -82,5 +82,10 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
                 OperationUpdates = updates.ToList()
             };
         }
+
+        public async Task<OperationUpdate> GetOperation(GetOperationRequest request)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
