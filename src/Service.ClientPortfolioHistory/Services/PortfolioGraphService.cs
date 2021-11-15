@@ -89,7 +89,7 @@ namespace Service.ClientPortfolioHistory.Services
                 if (balanceResponse == null || balanceResponse.Balances == null || !balanceResponse.Balances.Any())
                 {
                     _logger.LogWarning(
-                        "Unable to find any actual balances for user {ClientId} and wallet {WalletId}. Unable to create graph without balances");
+                        "Unable to find any actual balances for user {ClientId} and wallet {WalletId}. Unable to create graph without balances", request.ClientId, wallet.WalletId);
                     balanceResponse.Balances = new List<WalletBalance>();
                 }
 

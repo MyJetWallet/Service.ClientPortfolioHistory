@@ -47,5 +47,15 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
         {
             throw new System.NotImplementedException();
         }
+
+        public async Task SetIsInternalByWalletAsync(SetIsInternalByWalletRequest request)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public async Task<GetWalletInfoByIdResponse> GetWalletInfoByIdAsync(GetWalletInfoByIdRequest request)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
