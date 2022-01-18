@@ -57,5 +57,10 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
         {
             throw new System.NotImplementedException();
         }
+
+        public async Task SetEarnProgramByWalletAsync(SetEarnProgramByWalletRequest request)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
