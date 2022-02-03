@@ -203,7 +203,7 @@ namespace Service.ClientPortfolioHistory.Services
             }
             catch
             {
-                _logger.LogError("Unable to find candle for asset {Asset} for timepoint {TimePoint}", asset, timePoint);
+                _logger.LogWarning("Unable to find candle for asset {Asset} for timepoint {TimePoint}", asset, timePoint);
                 return candleDict.LastOrDefault().Value;
             }
         }
