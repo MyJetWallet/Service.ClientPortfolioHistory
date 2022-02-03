@@ -87,5 +87,10 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<ManualChangeAuditResponse> GetManualChangeAudit(ManualChangeAuditRequest request)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
