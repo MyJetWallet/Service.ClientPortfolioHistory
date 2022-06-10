@@ -32,5 +32,10 @@ namespace Service.ClientPortfolioHistory.Tests.Mocks
                 }
             };
         }
+
+        public async Task<WalletListResponse> GetWalletsByBalanceAsync(GetWalletsByBalanceRequest request)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
